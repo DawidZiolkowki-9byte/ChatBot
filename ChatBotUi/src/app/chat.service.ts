@@ -19,10 +19,12 @@ export class ChatService {
 
   sendMessage(conversationId: number, content: string): Observable<string> {
     return new Observable(observer => {
+      const controller = new AbortController();
       fetch(`${this.api}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId, content })
+        body: JSON.stringify({ conversationId, content }),
+        signal: controller.signal
       }).then(res => {
         const reader = res.body?.getReader();
         if (!reader) { observer.complete(); return; }
@@ -36,7 +38,7 @@ export class ChatService {
         }
         read();
       }).catch(err => observer.error(err));
-      return () => {};
+      return () => controller.abort();
     });
   }
 

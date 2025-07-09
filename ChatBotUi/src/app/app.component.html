@@ -20,5 +20,6 @@
       <input matInput [(ngModel)]="input" (keyup.enter)="send()" placeholder="Type your message..." />
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="send()" [disabled]="isGenerating">Send</button>
+    <button mat-raised-button color="warn" (click)="stop()" *ngIf="isGenerating">Stop</button>
   </div>
 </div>

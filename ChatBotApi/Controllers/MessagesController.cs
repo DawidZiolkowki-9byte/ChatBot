@@ -25,18 +25,14 @@ public class MessagesController : ControllerBase
         public string Content { get; set; } = string.Empty;
     }
 
-    public class MessageChunk
-    {
-        public string Content { get; set; } = string.Empty;
-    }
-
     [HttpPost]
-    public async IAsyncEnumerable<MessageChunk> SendMessage([FromBody] SendMessageRequest request, CancellationToken token)
+    public async Task SendMessage([FromBody] SendMessageRequest request)
     {
+        var token = HttpContext.RequestAborted;
         var convo = await _context.Conversations.FindAsync(new object?[] { request.ConversationId }, cancellationToken: token);
         if (convo == null)
         {
-            yield break;
+            return;
         }
         var userMessage = new Message
         {
@@ -58,10 +54,12 @@ public class MessagesController : ControllerBase
         _context.Messages.Add(botMessage);
         await _context.SaveChangesAsync(token);
 
+        Response.ContentType = "text/plain";
         await foreach (var ch in _generator.GenerateResponseAsync(token))
         {
             botMessage.Content += ch;
-            yield return new MessageChunk { Content = ch };
+            await Response.WriteAsync(ch, token);
+            await Response.Body.FlushAsync(token);
         }
 
         await _context.SaveChangesAsync(token);
