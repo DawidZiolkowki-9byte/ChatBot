@@ -1,6 +1,18 @@
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 body { margin: 0; font-family: Roboto, sans-serif; }
-.chat-container { max-width: 600px; margin: auto; }
+.chat-container {
+  max-width: 600px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
 .message-content {
   white-space: pre-wrap;
   padding: 8px;
@@ -9,7 +21,10 @@ body { margin: 0; font-family: Roboto, sans-serif; }
   max-width: 100%;
 }
 mat-list-item.User { text-align: right; }
-mat-list-item { overflow: visible; }
+mat-list-item {
+  overflow: visible;
+  height: auto !important;
+}
 mat-list-item .mat-list-item-content {
   align-items: flex-start;
   overflow: visible;

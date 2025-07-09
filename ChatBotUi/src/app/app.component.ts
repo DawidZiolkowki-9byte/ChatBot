@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,12 +23,13 @@ import { Message } from './models';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   messages: Message[] = [];
   conversationId?: number;
   input = '';
   isGenerating = false;
   streamSub?: Subscription;
+  @ViewChild('messageList') messageList?: ElementRef<HTMLDivElement>;
 
   constructor(private chat: ChatService) {}
 
@@ -36,7 +37,19 @@ export class AppComponent implements OnInit {
     this.chat.createConversation().subscribe(convo => {
       this.conversationId = convo.id;
       this.messages = convo.messages || [];
+      this.scrollToBottom();
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollToBottom();
+  }
+
+  private scrollToBottom() {
+    const el = this.messageList?.nativeElement;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }
 
   send() {
@@ -58,15 +71,18 @@ export class AppComponent implements OnInit {
     };
     this.messages.push(botMsg);
     this.isGenerating = true;
+    this.scrollToBottom();
     this.streamSub = this.chat.sendMessage(this.conversationId, content).subscribe({
       next: chunk => {
         botMsg.content += chunk;
+        this.scrollToBottom();
       },
       error: () => {
         this.isGenerating = false;
       },
       complete: () => {
         this.isGenerating = false;
+        this.scrollToBottom();
       }
     });
   }
