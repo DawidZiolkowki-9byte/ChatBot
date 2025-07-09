@@ -9,9 +9,7 @@ builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    //TODO: [proto] IgnoreCycles to improve
-    options.JsonSerializerOptions.ReferenceHandler =
-        System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
 
 builder.Services.AddMediatR(typeof(Program));
