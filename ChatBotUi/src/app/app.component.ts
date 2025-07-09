@@ -77,48 +77,68 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   send() {
-    if (!this.conversationId || !this.input.trim()) return;
+    if (!this.input.trim()) return;
     const content = this.input;
     this.input = '';
     const convo = this.conversations[this.conversations.length - 1];
-    const userMsg: Message = {
-      id: 0,
-      conversationId: this.conversationId,
-      author: 'User',
-      content
-    };
-    convo.messages.push(userMsg);
-    let botMsg: Message = {
-      id: 0,
-      conversationId: this.conversationId,
-      author: 'Bot',
-      content: ''
-    };
-    convo.messages.push(botMsg);
-    this.isGenerating = true;
-    this.scrollToBottom();
-    this.streamSub = this.chat.sendMessage(this.conversationId, content).subscribe({
-      next: chunk => {
-        botMsg.content += chunk;
-        this.scrollToBottom();
-      },
-      error: () => {
-        this.isGenerating = false;
-        this.chat.getConversation(this.conversationId!).subscribe(c => {
-          convo.messages = c.messages || [];
+    const proceed = () => {
+      const userMsg: Message = {
+        id: 0,
+        conversationId: this.conversationId!,
+        author: 'User',
+        content
+      };
+      convo.messages.push(userMsg);
+      let botMsg: Message = {
+        id: 0,
+        conversationId: this.conversationId!,
+        author: 'Bot',
+        content: ''
+      };
+      convo.messages.push(botMsg);
+      this.isGenerating = true;
+      this.scrollToBottom();
+      this.streamSub = this.chat
+        .sendMessage(this.conversationId!, content)
+        .subscribe({
+        next: chunk => {
+          botMsg.content += chunk;
+          this.scrollToBottom();
+        },
+        error: () => {
+          this.isGenerating = false;
+          this.chat.getConversation(this.conversationId!).subscribe(c => {
+            convo.messages = c.messages || [];
+            this.scrollToBottom();
+          });
+          alert('Failed to send message.');
+        },
+        complete: () => {
+          this.isGenerating = false;
+          this.chat.getConversation(this.conversationId!).subscribe(c => {
+            convo.messages = c.messages || [];
+            convo.title = c.title;    
           this.scrollToBottom();
         });
-        alert('Failed to send message.');
-      },
-      complete: () => {
-        this.isGenerating = false;
-        this.chat.getConversation(this.conversationId!).subscribe(c => {
-          convo.messages = c.messages || [];
-          convo.title = c.title;
-          this.scrollToBottom();
-        });
-      }
-    });
+        }
+      });
+    };
+
+    if (!this.conversationId) {
+      this.chat.createConversation().subscribe(c => {
+        this.conversationId = c.id;
+        convo.id = c.id;
+        convo.created = c.created;
+        convo.title = c.title;
+        const stored = localStorage.getItem('conversationIds');
+        const ids: number[] = stored ? JSON.parse(stored) : [];
+        ids.push(c.id);
+        localStorage.setItem('conversationIds', JSON.stringify(ids));
+        proceed();
+      });
+    } else {
+      proceed();
+    }
   }
 
   stop() {
