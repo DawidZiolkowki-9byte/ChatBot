@@ -42,14 +42,24 @@ public class MessagesController : ControllerBase
             return NotFound();
 
         Response.ContentType = "text/plain";
-        await foreach (var ch in _generator.GenerateResponseAsync(token))
+        try
         {
-            botMessage.Content += ch;
-            await Response.WriteAsync(ch, token);
-            await Response.Body.FlushAsync(token);
+            await foreach (var ch in _generator.GenerateResponseAsync(token))
+            {
+                botMessage.Content += ch;
+                await Response.WriteAsync(ch, token);
+                await Response.Body.FlushAsync(token);
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // The client aborted the request - persist partial response
+        }
+        finally
+        {
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
-        await _context.SaveChangesAsync(token);
         return new EmptyResult();
     }
 }
