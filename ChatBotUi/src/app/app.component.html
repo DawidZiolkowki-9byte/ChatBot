@@ -1,4 +1,5 @@
 <div class="chat-container">
+  <button mat-raised-button color="warn" class="clear-history" (click)="clearHistory()">Clear History</button>
   <div class="messages" #messageList>
     <mat-list>
       <ng-container *ngFor="let convo of conversations">

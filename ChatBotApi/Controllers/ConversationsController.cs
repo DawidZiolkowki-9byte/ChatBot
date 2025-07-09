@@ -66,4 +66,11 @@ public class ConversationsController : ControllerBase
         var convo = await _mediator.Send(new CreateConversationCommand());
         return CreatedAtAction(nameof(Get), new { id = convo.Id }, ToDto(convo));
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> Clear()
+    {
+        await _mediator.Send(new ClearConversationsCommand());
+        return NoContent();
+    }
 }

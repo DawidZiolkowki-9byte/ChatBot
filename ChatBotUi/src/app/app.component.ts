@@ -43,26 +43,22 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.chat.getConversation(id).subscribe({
           next: convo => {
             this.conversations.push(convo);
-            if (--remaining === 0) this.startNewConversation(ids);
+            if (--remaining === 0) this.startNewConversation();
           },
           error: () => {
-            if (--remaining === 0) this.startNewConversation(ids);
+            if (--remaining === 0) this.startNewConversation();
           }
         });
       });
     } else {
-      this.startNewConversation(ids);
+      this.startNewConversation();
     }
   }
 
-  private startNewConversation(ids: number[]) {
-    this.chat.createConversation().subscribe(convo => {
-      this.conversationId = convo.id;
-      this.conversations.push(convo);
-      ids.push(convo.id);
-      localStorage.setItem('conversationIds', JSON.stringify(ids));
-      this.scrollToBottom();
-    });
+  private startNewConversation() {
+    this.conversationId = undefined;
+    this.conversations.push({ id: 0, created: new Date().toISOString(), messages: [] });
+    this.scrollToBottom();
   }
 
   ngAfterViewInit(): void {
@@ -145,6 +141,15 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.streamSub?.unsubscribe();
     this.streamSub = undefined;
     this.isGenerating = false;
+  }
+
+  clearHistory() {
+    this.stop();
+    this.chat.clearConversations().subscribe(() => {
+      this.conversations = [];
+      localStorage.removeItem('conversationIds');
+      this.startNewConversation();
+    });
   }
 
   rate(message: Message, value: number) {

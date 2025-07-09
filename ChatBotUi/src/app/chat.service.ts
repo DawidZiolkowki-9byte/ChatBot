@@ -16,11 +16,15 @@ export class ChatService {
   getConversation(id: number): Observable<Conversation> {
     return this.http.get<Conversation>(`${this.api}/conversations/${id}`);
   }
-  
+
   listConversations(): Observable<Conversation[]> {
     return this.http.get<Conversation[]>(`${this.api}/conversations`);
   }
 
+  clearConversations(): Observable<void> {
+    return this.http.delete<void>(`${this.api}/conversations`);
+  }
+  
   sendMessage(conversationId: number, content: string): Observable<string> {
     return new Observable(observer => {
       const controller = new AbortController();
