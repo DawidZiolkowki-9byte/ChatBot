@@ -30,16 +30,16 @@ public class MessagesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task SendMessage([FromBody] SendMessageRequest request)
+    public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
     {
         var token = HttpContext.RequestAborted;
         var userMessage = await _mediator.Send(new CreateMessageCommand(request.ConversationId, MessageAuthor.User, request.Content), token);
         if (userMessage == null)
-            return;
+            return NotFound();
 
         var botMessage = await _mediator.Send(new CreateMessageCommand(request.ConversationId, MessageAuthor.Bot, string.Empty), token);
         if (botMessage == null)
-            return;
+            return NotFound();
 
         Response.ContentType = "text/plain";
         await foreach (var ch in _generator.GenerateResponseAsync(token))
@@ -50,5 +50,6 @@ public class MessagesController : ControllerBase
         }
 
         await _context.SaveChangesAsync(token);
+        return new EmptyResult();
     }
 }

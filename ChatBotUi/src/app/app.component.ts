@@ -79,6 +79,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       error: () => {
         this.isGenerating = false;
+        this.chat.getConversation(this.conversationId!).subscribe(convo => {
+          this.messages = convo.messages || [];
+          this.scrollToBottom();
+        });
+        alert('Failed to send message.');
       },
       complete: () => {
         this.isGenerating = false;

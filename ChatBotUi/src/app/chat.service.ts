@@ -26,8 +26,11 @@ export class ChatService {
         body: JSON.stringify({ conversationId, content }),
         signal: controller.signal
       }).then(res => {
-        const reader = res.body?.getReader();
-        if (!reader) { observer.complete(); return; }
+        if (!res.ok || !res.body) {
+          observer.error(res.statusText || 'HTTP error');
+          return;
+        }
+        const reader = res.body.getReader();        
         const decoder = new TextDecoder();
         function read() {
           reader.read().then(({ done, value }) => {
