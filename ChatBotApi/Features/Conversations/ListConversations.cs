@@ -21,7 +21,7 @@ public class ListConversationsHandler : IRequestHandler<ListConversationsQuery, 
         return await _context.Conversations
             .Include(c => c.Messages)
             .ThenInclude(m => m.Rating)
-            .OrderBy(c => c.Id)
+            .OrderBy(c => c.Created)
             .ToListAsync(cancellationToken);
     }
 }

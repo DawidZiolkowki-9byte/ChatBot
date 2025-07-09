@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -34,25 +34,19 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor(private chat: ChatService) {}
 
-  ngOnInit(): void {
-     const stored = localStorage.getItem('conversationIds');
+  async ngOnInit(): Promise<void> {
+    const stored = localStorage.getItem('conversationIds');
     const ids: number[] = stored ? JSON.parse(stored) : [];
-    if (ids.length) {
-      let remaining = ids.length;
-      ids.forEach(id => {
-        this.chat.getConversation(id).subscribe({
-          next: convo => {
-            this.conversations.push(convo);
-            if (--remaining === 0) this.startNewConversation();
-          },
-          error: () => {
-            if (--remaining === 0) this.startNewConversation();
-          }
-        });
-      });
-    } else {
-      this.startNewConversation();
+    for (const id of ids) {
+      try {
+        const convo = await firstValueFrom(this.chat.getConversation(id));
+        this.conversations.push(convo);
+      } catch {
+        // TODO load errors
+      }
     }
+    this.conversations.sort((a, b) => new Date(a.created).getTime() - new Date(b.created).getTime());
+    this.startNewConversation();
   }
 
   private startNewConversation() {
