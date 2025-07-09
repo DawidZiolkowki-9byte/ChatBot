@@ -35,8 +35,28 @@ export class AppComponent implements OnInit, AfterViewInit {
   constructor(private chat: ChatService) {}
 
   ngOnInit(): void {
+    const stored = localStorage.getItem('conversationId');
+    if (stored) {
+      this.conversationId = +stored;
+      this.chat.getConversation(this.conversationId).subscribe({
+        next: convo => {
+          this.conversationTitle = convo.title ?? undefined;
+          this.messages = convo.messages || [];
+          this.scrollToBottom();
+        },
+        error: () => {
+          this.startNewConversation();
+        }
+      });
+    } else {
+      this.startNewConversation();
+    }
+  }
+
+  private startNewConversation() {
     this.chat.createConversation().subscribe(convo => {
       this.conversationId = convo.id;
+      localStorage.setItem('conversationId', String(convo.id));
       this.conversationTitle = convo.title ?? undefined;
       this.messages = convo.messages || [];
       this.scrollToBottom();
