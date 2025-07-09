@@ -25,7 +25,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "chatbot-ui:build"
+            "browserTarget": "chatbot-ui:build",
+            "proxyConfig": "proxy.conf.json"
           }
         }
       }
