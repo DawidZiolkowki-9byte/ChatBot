@@ -82,7 +82,10 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       complete: () => {
         this.isGenerating = false;
-        this.scrollToBottom();
+        this.chat.getConversation(this.conversationId!).subscribe(convo => {
+          this.messages = convo.messages || [];
+          this.scrollToBottom();
+        });
       }
     });
   }
