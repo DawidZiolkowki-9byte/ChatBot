@@ -1,0 +1,7 @@
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+body { margin: 0; font-family: Roboto, sans-serif; }
+.chat-container { max-width: 600px; margin: auto; }
+.message-content { white-space: pre-wrap; }
+mat-list-item.User { text-align: right; }
+.input-area { display: flex; gap: 8px; padding: 8px; }
+.message-input { flex: 1; }
