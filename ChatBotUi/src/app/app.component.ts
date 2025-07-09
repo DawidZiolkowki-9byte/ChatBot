@@ -26,6 +26,7 @@ import { Message } from './models';
 export class AppComponent implements OnInit, AfterViewInit {
   messages: Message[] = [];
   conversationId?: number;
+  conversationTitle?: string;
   input = '';
   isGenerating = false;
   streamSub?: Subscription;
@@ -36,6 +37,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.chat.createConversation().subscribe(convo => {
       this.conversationId = convo.id;
+      this.conversationTitle = convo.title ?? undefined;
       this.messages = convo.messages || [];
       this.scrollToBottom();
     });
@@ -89,6 +91,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.isGenerating = false;
         this.chat.getConversation(this.conversationId!).subscribe(convo => {
           this.messages = convo.messages || [];
+          this.conversationTitle = convo.title ?? undefined;
           this.scrollToBottom();
         });
       }

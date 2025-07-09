@@ -1,4 +1,5 @@
 <div class="chat-container">
+  <h2 class="conversation-title" *ngIf="conversationTitle">{{ conversationTitle }}</h2>
   <div class="messages" #messageList>
     <mat-list>
       <ng-container *ngFor="let msg of messages">

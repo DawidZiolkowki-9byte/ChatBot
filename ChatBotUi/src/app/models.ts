@@ -15,5 +15,6 @@ export interface Message {
 export interface Conversation {
   id: number;
   created: string;
+  title?: string;
   messages: Message[];
 }
