@@ -40,4 +40,22 @@ This repository contains a prototype AI chatbot consisting of an ASP.NET Core ba
 - Visit the application in Chrome, Firefox or Safari and send a few messages. The bot replies with randomly generated text.
 - Use the 👍/👎 buttons to rate bot messages.
 
+## Presentation
+
+   ✅ Logging of the running API
+   
+  ![API_console_shot](https://github.com/user-attachments/assets/1e267a49-58c2-4f9b-b01e-969c92bd8357)
+  
+   ✅ Main view of the application
+   
+  ![image](https://github.com/user-attachments/assets/9f71094d-86fc-464d-b520-3d85d6732a16)
+  
+   ✅ UI presentation while receiving a response
+   
+  ![image](https://github.com/user-attachments/assets/35beca0a-96bc-409b-9148-e34112d967e7)
+
+
+
+
+
 Integration between frontend and backend can be tested by running both servers locally and verifying that messages and ratings persist across refreshes.
