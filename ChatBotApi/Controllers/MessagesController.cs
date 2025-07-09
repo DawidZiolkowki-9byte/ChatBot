@@ -1,6 +1,8 @@
 using ChatBotApi.Data;
+using ChatBotApi.Features.Messages;
 using ChatBotApi.Models;
 using ChatBotApi.Services;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,11 +13,13 @@ namespace ChatBotApi.Controllers;
 public class MessagesController : ControllerBase
 {
     private readonly ChatBotContext _context;
+    private readonly IMediator _mediator;
     private readonly ChatResponseGenerator _generator;
 
-    public MessagesController(ChatBotContext context, ChatResponseGenerator generator)
+    public MessagesController(ChatBotContext context, IMediator mediator, ChatResponseGenerator generator)
     {
         _context = context;
+        _mediator = mediator;
         _generator = generator;
     }
 
@@ -29,30 +33,13 @@ public class MessagesController : ControllerBase
     public async Task SendMessage([FromBody] SendMessageRequest request)
     {
         var token = HttpContext.RequestAborted;
-        var convo = await _context.Conversations.FindAsync(new object?[] { request.ConversationId }, cancellationToken: token);
-        if (convo == null)
-        {
+        var userMessage = await _mediator.Send(new CreateMessageCommand(request.ConversationId, MessageAuthor.User, request.Content), token);
+        if (userMessage == null)
             return;
-        }
-        var userMessage = new Message
-        {
-            ConversationId = request.ConversationId,
-            Author = MessageAuthor.User,
-            Content = request.Content,
-            Created = DateTime.UtcNow
-        };
-        _context.Messages.Add(userMessage);
-        await _context.SaveChangesAsync(token);
 
-        var botMessage = new Message
-        {
-            ConversationId = request.ConversationId,
-            Author = MessageAuthor.Bot,
-            Content = string.Empty,
-            Created = DateTime.UtcNow
-        };
-        _context.Messages.Add(botMessage);
-        await _context.SaveChangesAsync(token);
+        var botMessage = await _mediator.Send(new CreateMessageCommand(request.ConversationId, MessageAuthor.Bot, string.Empty), token);
+        if (botMessage == null)
+            return;
 
         Response.ContentType = "text/plain";
         await foreach (var ch in _generator.GenerateResponseAsync(token))

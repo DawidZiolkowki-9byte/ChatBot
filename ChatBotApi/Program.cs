@@ -1,5 +1,6 @@
 using ChatBotApi.Data;
 using ChatBotApi.Services;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5001");
 
 builder.Services.AddControllers();
+
+builder.Services.AddMediatR(typeof(Program));
 
 builder.Services.AddDbContext<ChatBotContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
