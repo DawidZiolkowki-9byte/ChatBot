@@ -16,6 +16,10 @@ export class ChatService {
   getConversation(id: number): Observable<Conversation> {
     return this.http.get<Conversation>(`${this.api}/conversations/${id}`);
   }
+  
+  listConversations(): Observable<Conversation[]> {
+    return this.http.get<Conversation[]>(`${this.api}/conversations`);
+  }
 
   sendMessage(conversationId: number, content: string): Observable<string> {
     return new Observable(observer => {

@@ -1,27 +1,29 @@
 <div class="chat-container">
-  <h2 class="conversation-title" *ngIf="conversationTitle">{{ conversationTitle }}</h2>
   <div class="messages" #messageList>
     <mat-list>
-      <ng-container *ngFor="let msg of messages">
-        <mat-list-item [ngClass]="msg.author">
-          <div class="message-content">{{ msg.content }}</div>
-          <div class="rating" *ngIf="msg.author === 'Bot'">
-            <button
-              mat-icon-button
-              (click)="rate(msg, 1)"
-              [color]="msg.rating?.value === 1 ? 'primary' : undefined"
-            >
-              <mat-icon>thumb_up</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="rate(msg, -1)"
-              [color]="msg.rating?.value === -1 ? 'warn' : undefined"
-            >
-              <mat-icon>thumb_down</mat-icon>
-            </button>
-          </div>
-        </mat-list-item>
+      <ng-container *ngFor="let convo of conversations">
+        <h3 class="conversation-title" *ngIf="convo.title">{{ convo.title }}</h3>
+        <ng-container *ngFor="let msg of convo.messages">
+          <mat-list-item [ngClass]="msg.author">
+            <div class="message-content">{{ msg.content }}</div>
+            <div class="rating" *ngIf="msg.author === 'Bot'">
+              <button
+                mat-icon-button
+                (click)="rate(msg, 1)"
+                [color]="msg.rating?.value === 1 ? 'primary' : undefined"
+              >
+                <mat-icon>thumb_up</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                (click)="rate(msg, -1)"
+                [color]="msg.rating?.value === -1 ? 'warn' : undefined"
+              >
+                <mat-icon>thumb_down</mat-icon>
+              </button>
+            </div>
+          </mat-list-item>
+        </ng-container>
       </ng-container>
     </mat-list>
   </div>

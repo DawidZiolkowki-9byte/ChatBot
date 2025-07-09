@@ -44,6 +44,13 @@ public class ConversationsController : ControllerBase
         };
     }
 
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<ConversationDto>>> GetAll()
+    {
+        var convos = await _mediator.Send(new ListConversationsQuery());
+        return convos.Select(ToDto).ToList();
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ConversationDto>> Get(int id)
     {

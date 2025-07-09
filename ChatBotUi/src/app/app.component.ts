@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { ChatService } from './chat.service';
-import { Message } from './models';
+import { Message, Conversation } from './models';
 
 @Component({
   selector: 'app-root',
@@ -24,7 +24,7 @@ import { Message } from './models';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  messages: Message[] = [];
+  conversations: Conversation[] = [];
   conversationId?: number;
   conversationTitle?: string;
   input = '';
@@ -35,30 +35,32 @@ export class AppComponent implements OnInit, AfterViewInit {
   constructor(private chat: ChatService) {}
 
   ngOnInit(): void {
-    const stored = localStorage.getItem('conversationId');
-    if (stored) {
-      this.conversationId = +stored;
-      this.chat.getConversation(this.conversationId).subscribe({
-        next: convo => {
-          this.conversationTitle = convo.title ?? undefined;
-          this.messages = convo.messages || [];
-          this.scrollToBottom();
-        },
-        error: () => {
-          this.startNewConversation();
-        }
+     const stored = localStorage.getItem('conversationIds');
+    const ids: number[] = stored ? JSON.parse(stored) : [];
+    if (ids.length) {
+      let remaining = ids.length;
+      ids.forEach(id => {
+        this.chat.getConversation(id).subscribe({
+          next: convo => {
+            this.conversations.push(convo);
+            if (--remaining === 0) this.startNewConversation(ids);
+          },
+          error: () => {
+            if (--remaining === 0) this.startNewConversation(ids);
+          }
+        });
       });
     } else {
-      this.startNewConversation();
+      this.startNewConversation(ids);
     }
   }
 
-  private startNewConversation() {
+  private startNewConversation(ids: number[]) {
     this.chat.createConversation().subscribe(convo => {
       this.conversationId = convo.id;
-      localStorage.setItem('conversationId', String(convo.id));
-      this.conversationTitle = convo.title ?? undefined;
-      this.messages = convo.messages || [];
+      this.conversations.push(convo);
+      ids.push(convo.id);
+      localStorage.setItem('conversationIds', JSON.stringify(ids));
       this.scrollToBottom();
     });
   }
@@ -78,20 +80,21 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (!this.conversationId || !this.input.trim()) return;
     const content = this.input;
     this.input = '';
+    const convo = this.conversations[this.conversations.length - 1];
     const userMsg: Message = {
       id: 0,
       conversationId: this.conversationId,
       author: 'User',
       content
     };
-    this.messages.push(userMsg);
+    convo.messages.push(userMsg);
     let botMsg: Message = {
       id: 0,
       conversationId: this.conversationId,
       author: 'Bot',
       content: ''
     };
-    this.messages.push(botMsg);
+    convo.messages.push(botMsg);
     this.isGenerating = true;
     this.scrollToBottom();
     this.streamSub = this.chat.sendMessage(this.conversationId, content).subscribe({
@@ -101,17 +104,17 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       error: () => {
         this.isGenerating = false;
-        this.chat.getConversation(this.conversationId!).subscribe(convo => {
-          this.messages = convo.messages || [];
+        this.chat.getConversation(this.conversationId!).subscribe(c => {
+          convo.messages = c.messages || [];
           this.scrollToBottom();
         });
         alert('Failed to send message.');
       },
       complete: () => {
         this.isGenerating = false;
-        this.chat.getConversation(this.conversationId!).subscribe(convo => {
-          this.messages = convo.messages || [];
-          this.conversationTitle = convo.title ?? undefined;
+        this.chat.getConversation(this.conversationId!).subscribe(c => {
+          convo.messages = c.messages || [];
+          convo.title = c.title;
           this.scrollToBottom();
         });
       }
