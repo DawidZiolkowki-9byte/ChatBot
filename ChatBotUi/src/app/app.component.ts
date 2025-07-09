@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +28,7 @@ export class AppComponent implements OnInit {
   conversationId?: number;
   input = '';
   isGenerating = false;
+  streamSub?: Subscription;
 
   constructor(private chat: ChatService) {}
 
@@ -56,14 +58,23 @@ export class AppComponent implements OnInit {
     };
     this.messages.push(botMsg);
     this.isGenerating = true;
-    this.chat.sendMessage(this.conversationId, content).subscribe({
+    this.streamSub = this.chat.sendMessage(this.conversationId, content).subscribe({
       next: chunk => {
         botMsg.content += chunk;
+      },
+      error: () => {
+        this.isGenerating = false;
       },
       complete: () => {
         this.isGenerating = false;
       }
     });
+  }
+
+  stop() {
+    this.streamSub?.unsubscribe();
+    this.streamSub = undefined;
+    this.isGenerating = false;
   }
 
   rate(message: Message, value: number) {
