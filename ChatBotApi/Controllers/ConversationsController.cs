@@ -1,5 +1,7 @@
 using ChatBotApi.Data;
+using ChatBotApi.Features.Conversations;
 using ChatBotApi.Models;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,20 +11,17 @@ namespace ChatBotApi.Controllers;
 [Route("api/[controller]")]
 public class ConversationsController : ControllerBase
 {
-    private readonly ChatBotContext _context;
+    private readonly IMediator _mediator;
 
-    public ConversationsController(ChatBotContext context)
+    public ConversationsController(IMediator mediator)
     {
-        _context = context;
+        _mediator = mediator;
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Conversation>> Get(int id)
     {
-        var convo = await _context.Conversations
-            .Include(c => c.Messages)
-            .ThenInclude(m => m.Rating)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        var convo = await _mediator.Send(new GetConversationQuery(id));
         if (convo == null)
             return NotFound();
         return convo;
@@ -31,9 +30,7 @@ public class ConversationsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Conversation>> Create()
     {
-        var convo = new Conversation();
-        _context.Conversations.Add(convo);
-        await _context.SaveChangesAsync();
+        var convo = await _mediator.Send(new CreateConversationCommand());
         return CreatedAtAction(nameof(Get), new { id = convo.Id }, convo);
     }
 }

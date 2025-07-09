@@ -1,5 +1,7 @@
 using ChatBotApi.Data;
+using ChatBotApi.Features.Ratings;
 using ChatBotApi.Models;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +11,11 @@ namespace ChatBotApi.Controllers;
 [Route("api/[controller]")]
 public class RatingsController : ControllerBase
 {
-    private readonly ChatBotContext _context;
+    private readonly IMediator _mediator;
 
-    public RatingsController(ChatBotContext context)
+    public RatingsController(IMediator mediator)
     {
-        _context = context;
+        _mediator = mediator;
     }
 
     public class RatingRequest
@@ -28,18 +30,9 @@ public class RatingsController : ControllerBase
         if (request.Value != 1 && request.Value != -1)
             return BadRequest();
 
-        var rating = await _context.Ratings.FirstOrDefaultAsync(r => r.MessageId == request.MessageId);
+        var rating = await _mediator.Send(new SetRatingCommand(request.MessageId, request.Value));
         if (rating == null)
-        {
-            rating = new Rating { MessageId = request.MessageId, Value = request.Value };
-            _context.Ratings.Add(rating);
-        }
-        else
-        {
-            rating.Value = request.Value;
-        }
-
-        await _context.SaveChangesAsync();
+            return BadRequest();
         return Ok(rating);
     }
 }
